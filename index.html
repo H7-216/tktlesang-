@@ -1,16 +1,348 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recherche de Films et Séries</title>
-    <link rel="stylesheet" href="style.css">
+    <title>FLIXPULSE | Recherche de Films/Séries</title>
+    <style>
+        :root {
+            --primary: #ff4d4d;
+            --dark: #0f0f1a;
+            --light: #f8f9fa;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 2rem;
+            overflow-x: hidden;
+        }
+        
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #ff4d4d, #f9cb28);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.5));
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        #search {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        #search:focus {
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+        
+        button {
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #ff4d4d, #f9cb28);
+            border: none;
+            border-radius: 50px;
+            color: var(--dark);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 77, 77, 0.4);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 77, 77, 0.6);
+        }
+        
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            background: var(--glass);
+            border: none;
+            border-radius: 20px;
+            color: var(--light);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: var(--primary);
+        }
+        
+        #results {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+        
+        .movie {
+            border: 1px solid var(--glass);
+            border-radius: 15px;
+            padding: 1.5rem;
+            width: 280px;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        .movie:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(255, 77, 77, 0.3);
+        }
+        
+        .movie img {
+            width: 100%;
+            border-radius: 10px;
+            aspect-ratio: 2/3;
+            object-fit: cover;
+            margin-bottom: 1rem;
+            transition: transform 0.3s;
+        }
+        
+        .movie:hover img {
+            transform: scale(1.05);
+        }
+        
+        .movie h2 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .movie p {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .rating svg {
+            color: #f9cb28;
+        }
+        
+        .details-link {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        
+        .details-link:hover {
+            background: white;
+            color: var(--primary);
+        }
+        
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin: 2rem auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .type-toggle {
+            display: flex;
+            background: var(--glass);
+            border-radius: 50px;
+            padding: 0.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .type-toggle button {
+            padding: 0.5rem 1rem;
+            background: none;
+            border: none;
+            color: var(--light);
+            cursor: pointer;
+            flex: 1;
+            border-radius: 50px;
+            transition: all 0.3s;
+        }
+        
+        .type-toggle button.active {
+            background: var(--primary);
+            color: var(--dark);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Recherche de Films et Séries</h1>
-    <input type="text" id="search" placeholder="Entrez un titre">
-    <button onclick="searchMovies()">Rechercher</button>
+    <header>
+        <h1>FLIXPULSE</h1>
+        <div class="type-toggle">
+            <button class="active" onclick="setType('movie')">Films</button>
+            <button onclick="setType('tv')">Séries</button>
+        </div>
+    </header>
+    
+    <div class="search-container">
+        <input type="text" id="search" placeholder="Rechercher un film, une série...">
+        <button onclick="searchContent()">Explorer</button>
+    </div>
+    
+    <div class="filters">
+        <button class="filter-btn active" onclick="filterBy('all')">Tous</button>
+        <button class="filter-btn" onclick="filterBy('popular')">Populaires</button>
+        <button class="filter-btn" onclick="filterBy('top_rated')">Top Notes</button>
+        <button class="filter-btn" onclick="filterBy('upcoming')">Prochainement</button>
+    </div>
+    
     <div id="results"></div>
-    <script src="app.js"></script>
+    <div class="loader" id="loader"></div>
+    
+    <script>
+        const apiKey = 'cc13a2f6dab8874566057368ae0427b8';
+        let currentType = 'movie';
+        let currentFilter = 'all';
+        
+        function setType(type) {
+            currentType = type;
+            document.querySelectorAll('.type-toggle button').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase() === type);
+            });
+            searchContent();
+        }
+        
+        function filterBy(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase() === filter);
+            });
+            searchContent();
+        }
+        
+        async function searchContent() {
+            const query = document.getElementById('search').value;
+            if (!query) return;
+            
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('results').innerHTML = '';
+            
+            try {
+                let url;
+                if (currentFilter === 'all') {
+                    url = `https://api.themoviedb.org/3/search/${currentType}?api_key=${apiKey}&query=${query}&language=fr-FR`;
+                } else {
+                    url = `https://api.themoviedb.org/3/${currentType}/${currentFilter}?api_key=${apiKey}&language=fr-FR`;
+                }
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                displayResults(data.results);
+            } catch (error) {
+                console.error("Erreur:", error);
+                document.getElementById('results').innerHTML = '<p>Une erreur est survenue. Réessayez.</p>';
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+        
+        function displayResults(items) {
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+            
+            if (!items || items.length === 0) {
+                results.innerHTML = '<p>Aucun résultat trouvé. Essayez un autre terme.</p>';
+                return;
+            }
+            
+            items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('movie');
+                
+                const title = currentType === 'movie' ? item.title : item.name;
+                const releaseDate = currentType === 'movie' ? item.release_date : item.first_air_date;
+                const link = currentType === 'movie' ? `https://www.themoviedb.org/movie/${item.id}` : `https://www.themoviedb.org/tv/${item.id}`;
+                
+                itemElement.innerHTML = `
+                    <img src="${item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image'}" alt="${title}">
+                    <h2>${title}</h2>
+                    <div class="rating">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+                        <span>${item.vote_average.toFixed(1)}/10</span>
+                    </div>
+                    <p>${item.overview || 'Aucune description disponible.'}</p>
+                    <a href="${link}" target="_blank" class="details-link">Voir détails</a>
+                `;
+                results.appendChild(itemElement);
+            });
+        }
+        
+        document.getElementById('search').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchContent();
+        });
+    </script>
 </body>
 </html>
